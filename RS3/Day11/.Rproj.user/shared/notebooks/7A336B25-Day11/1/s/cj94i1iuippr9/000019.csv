@@ -1,0 +1,7 @@
+"0","# Linearity and Equal Variance: The Residual vs. Fitted Plot shows a uniform scatter on both sides, indicating these assumptions are satisfied."
+"0","# Normality: The QQ Plot appears relatively linear, suggesting that the normality assumption is met."
+"0",""
+"0","#c)"
+"0","studres_hp <- rstudent(model_hp)"
+"0","HighPeaks$studres <- studres_hp"
+"0","HighPeaks[abs(HighPeaks$studres) > 2, ]"

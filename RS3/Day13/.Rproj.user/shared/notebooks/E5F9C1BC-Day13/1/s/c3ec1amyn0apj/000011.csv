@@ -1,0 +1,2 @@
+"0","SATGPA <- read_csv(""SATGPA.csv"")"
+"0","head(SATGPA)"

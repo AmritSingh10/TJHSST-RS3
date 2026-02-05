@@ -1,0 +1,7 @@
+"0",""
+"0","# After the transformation, the sample means and standard deviations are more similar across species."
+"0",""
+"0","# b.)"
+"0","hawks_filtered %>%"
+"0","  ggplot(aes(x = Species, y = Weight_trans)) +"
+"0","  geom_boxplot()"

@@ -1,0 +1,6 @@
+"0",""
+"0","mean(r_squared_values >= summary(model)$r.squared)"
+"1","[1]"
+"1"," 0.0154"
+"1","
+"

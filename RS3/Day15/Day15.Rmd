@@ -1,0 +1,142 @@
+---
+title: "Day15"
+author: "Amrit Singh"
+date: "2025-11-10"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+births <- read_csv("NCBirths.csv")
+mouse <- read_csv("MouseBrain.csv")
+amyloid <- read_csv("Amyloid.csv")
+meniscus <- read_csv("Meniscus.csv")
+
+#5.6: b. The error terms aren’t all positive. ANOVA assumes that the errors are independent, roughly normally distributed, and have a common standard deviation.
+
+#5.7: d. Check model assumptions using a normal probability plot of residuals and a residuals-versus-fits plot.
+
+#5.11
+# a. Randomly assigning mothers to racial or ethnic groups isn’t possible, so no causal conclusion can be drawn—only correlation.
+# b. If the sample was randomly selected from 2004 North Carolina births, inferences can be made to that population, assuming ANOVA conditions are met.
+
+#5.12
+# a. Since the study was observational rather than experimental, confounding variables couldn’t be controlled. Personality traits like risk-taking or thrill-seeking could affect both music preference and speeding behavior.
+# b. Because the participants were all from one large high school, results can only be generalized to similar student populations, not all teens or drivers.
+
+#5.14: Incorrect, Incorrect, Incorrect, Correct
+
+#5.22
+# a. No. Residuals show deviations from each group’s mean, and their total must be zero. If all residuals were positive, the sum would exceed zero, which is impossible.
+# b. Yes. This can occur if one residual is negative enough to offset several positive ones, keeping the total at zero.
+# c. Yes. A residual reflects distance from the group mean, not relative ranking. So one person may have a higher raw score but a smaller residual if it’s closer to the mean.
+# d. Yes. Residuals are calculated within each group’s mean. Even if one group’s average is higher, a member can still have a smaller residual relative to that mean.
+
+#5.27: The “Mixed” genotype group has the highest average contacts, “Minus” the lowest, with similar variability across groups. ANOVA assumptions appear valid, showing average contact counts differ as Mixed > Plus > Minus.
+
+#5.31
+# The three groups are: No cognitive impairment, Mild cognitive impairment, Mild-to-moderate Alzheimer’s disease
+# B-amyloid levels tend to increase with greater cognitive decline. The boxplots show higher centers and wider spreads for the Alzheimer’s group, indicating different population means. Because the variable is quantitative, groups are independent, and spreads are similar, ANOVA is appropriate.
+
+#5.33
+# MS(Occupation) = 2749 / 4 = 687.25
+# MS(Error) = 195149 / 968 = 201.4
+# F = 687.25 / 201.4 ≈ 3.41
+
+#5.38
+# Null: Mean stiffness is the same for all three repair methods (μVertical=μArrow=μFastFix)
+# Alternative: At least one mean stiffness differs.
+# Independence: Each knee randomly assigned, so groups are independent.
+# Normality: Residuals appear approximately normal.
+# Equal variances: Group spreads are similar.
+# Result: With p = 0.947 > 0.05, there’s no evidence that average stiffness differs among the three techniques.
+
+#5.40
+# Null: Mean displacement is equal for all three methods (μVertical=μArrow=μFastFix).
+# Alternative: At least one differs.
+# Independence: Independence ensured by random assignment.
+# Normality: Residuals roughly normal.
+# Equal variances: Variances similar across groups.
+# Result: With p-value = 0.842 is far above 0.05, so there’s no significant evidence of mean displacement differences among methods.
+
+by_race <- births %>%
+group_by(MomRace) %>%
+summarise(n = n(),
+mean_bw = mean(BirthWeightGm, na.rm = TRUE),
+sd_bw = sd(BirthWeightGm, na.rm = TRUE)) %>%
+arrange(MomRace)
+by_race
+
+fit <- aov(BirthWeightGm ~ MomRace, data = births)
+summary(fit)
+plot(fit, which = 1)
+qqnorm(residuals(fit)); qqline(residuals(fit))
+
+desc <- mouse %>%
+group_by(Genotype) %>%
+summarise(n = n(),
+mean = mean(Contacts),
+sd = sd(Contacts),
+median = median(Contacts),
+min = min(Contacts),
+max = max(Contacts),
+.groups = "drop")
+desc
+
+ggplot(mouse, aes(x = Genotype, y = Contacts, fill = Genotype)) +
+geom_boxplot(width = 0.7) +
+labs(y = "Serotonin contacts", x = "Genotype") +
+theme_minimal() +
+theme(legend.position = "none")
+
+fit <- aov(Contacts ~ Genotype, data = mouse)
+summary(fit)
+
+par(mfrow = c(1, 2))
+plot(fit, which = 1)
+qqnorm(residuals(fit)); qqline(residuals(fit))
+
+amyloid %>%
+group_by(Group) %>%
+summarise(n = n(),
+mean_Abeta = mean(Abeta, na.rm = TRUE),
+sd_Abeta = sd(Abeta, na.rm = TRUE))
+
+ggplot(amyloid, aes(x = Group, y = Abeta, fill = Group)) +
+geom_boxplot() +
+labs(x = "Cognitive Group", y = "Abeta (pmol/g)") +
+theme_minimal()
+
+glimpse(meniscus)
+
+meniscus %>%
+group_by(Method) %>%
+summarise(n = n(),
+mean_stiff = mean(Stiffness, na.rm = TRUE),
+sd_stiff = sd(Stiffness, na.rm = TRUE))
+
+ggplot(meniscus, aes(x = Method, y = Stiffness, fill = Method)) + geom_boxplot() + theme_minimal()
+
+
+fit_stiff <- aov(Stiffness ~ Method, data = meniscus)
+summary(fit_stiff)
+meniscus %>%
+group_by(Method) %>%
+summarise(n = n(),
+mean_disp = mean(Displacement, na.rm = TRUE),
+sd_disp = sd(Displacement, na.rm = TRUE))
+
+ggplot(meniscus, aes(x = Method, y = Displacement, fill = Method)) +
+geom_boxplot() +
+labs(x = "Repair method", y = "Displacement") +
+theme_minimal() +
+theme(legend.position = "none")
+
+fit_disp <- aov(Displacement ~ Method, data = meniscus)
+summary(fit_disp)
+```

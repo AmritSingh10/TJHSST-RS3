@@ -1,0 +1,4 @@
+"0","plot(fitted(model_636), resid(model_636),"
+"0","  xlab = ""Fitted Value"","
+"0","  ylab = ""Residual"","
+"0","  main = ""Residuals vs Fitted"")"

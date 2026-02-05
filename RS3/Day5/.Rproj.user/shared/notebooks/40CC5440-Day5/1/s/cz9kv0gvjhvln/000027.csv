@@ -1,0 +1,2 @@
+"0","reg = lm(MMSE~APC, data = Dementia)"
+"0","abline(reg, col = ""green3"")"

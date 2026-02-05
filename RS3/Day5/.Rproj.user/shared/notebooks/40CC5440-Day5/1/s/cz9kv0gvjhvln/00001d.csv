@@ -1,0 +1,5 @@
+"0",""
+"0","plot(BrainpH$pH~BrainpH$Age,"
+"0","     main= ""scatterplot of relationship between pH and age"","
+"0","     xlab= ""Age"","
+"0","     ylab= ""pH"")"

@@ -1,0 +1,215 @@
+---
+title: "Day8"
+author: "Amrit Singh"
+date: "2025-09-30"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(readr)
+library(ggplot2)
+CountyHealth <- read_csv("CountyHealth.csv")
+FishEggs <- read_csv("FishEggs.csv")
+Fluorescence <- read_csv("Fluorescence.csv")
+Pollster <- read_csv("Pollster08.csv")
+
+
+#10:
+#a. Negative, since newer cars generally have less mileage.
+#b. Negative, because as mileage increases, the car’s value decreases.
+
+#11:
+#a. He’d choose a dealership with negative residuals, meaning the predicted value exceeds the listed price, making it a bargain.
+#b. Price = b1·Year + b2·Mileage + b0 + error.
+#c. Likely negative, since higher year/mileage lowers value, while lower year/mileage raises it.
+
+#13:
+#a. Arsenic = b0 + b1·Year + b2·Miles + b3·(Year × Miles) + error.
+#b. Lead = b0 + b1·Year + b2·Iclean + b3·(Year × Iclean) + error.
+#c. Titanium = b0 + b1·Miles + b2·Miles² + error.
+#d. Sulfide = b0 + b1·Year + b2·Miles + b3·Depth + b4·(Year × Miles) + b5·(Year × Depth) + b6·(Miles × Depth) + error.
+
+#15:
+#a. 198 – 3 – 1 = 194 degrees of freedom.
+#b. 198 – 3 – 1 = 194 degrees of freedom.
+#a. 198 – 2 – 1 = 195 degrees of freedom.
+#b. 198 – 6 – 1 = 191 degrees of freedom.
+
+# 3.34)
+# a)
+model1 <- lm(PctDM ~ Age, data = FishEggs)
+summary(model1)
+# LRSL: PctDM = 38.702 - 0.2103Age
+# For every one year increase in age, PctDM decreases by 0.2103.
+
+# b)
+summary(model1)$r.squared
+# r^2 = 0.2004 so 20% of variability in the model is explained by the LSRL.
+
+# c)
+summary(model1)$coefficients
+# p = 0.007, so there is a significant relationship between age and pctdm.
+
+# d)
+residuals_plot <- ggplot(data = FishEggs, aes(x = fitted(model1), y = residuals(model1))) +
+geom_point() +
+geom_hline(yintercept = 0, linetype = "dashed") +
+labs(title = "Residuals vs Fitted Values")
+print(residuals_plot)
+# No patterns in the residual plot.
+
+# e)
+residuals_plot2 <- ggplot(data = FishEggs, aes(x = fitted(model1), y = residuals(model1), color = factor(Month), shape = factor(Month))) +
+geom_point(size = 3) +
+geom_hline(yintercept = 0, linetype = "dashed") +
+labs(title = "Residuals vs Fitted Values by Month", color = "Month", shape = "Month") +
+scale_color_manual(values = c("blue", "red")) +
+scale_shape_manual(values = c(16, 17))
+print(residuals_plot2)
+
+# September seems to have negative residuals while Novemeber seems to have negative residuals.
+model2 <- lm(PctDM ~ Age * Month, data = FishEggs)
+summary(model2)
+
+# Fitted model is pctdm = 39.40 - 0.218Age - 1.276Sept - 0.0214Age*Sept
+
+
+# f)
+model3 <- lm(PctDM ~ Age + Month, data = FishEggs)
+summary(model3)
+# Both effects are significant in this model
+
+# g)
+summary(model3)$r.squared
+# r^2 = 0.4298, so 42.98% of the variability is explained by the model.
+
+#h)
+residuals_plot3 <- ggplot(data = FishEggs, aes(x = fitted(model3), y = residuals(model3), color = factor(Month), shape = factor(Month))) +
+geom_point(size = 3) +
+geom_hline(yintercept = 0, linetype = "dashed") +
+labs(title = "Residuals vs Fitted Values by Month (Updated Model)", color = "Month", shape = "Month") +
+scale_color_manual(values = c("blue", "red")) +
+scale_shape_manual(values = c(16, 17))
+print(residuals_plot3)
+# Now, both months seems to have positive and negative values
+
+# 3.41
+# a)
+Fluorescence$CalciumSq <- Fluorescence$Calcium^2
+model4 <- lm(ProteinProp ~ Calcium + CalciumSq, data = Fluorescence)
+summary(model4)
+# ProteinProp = 0.479926 - 0.2532Calcium - 0.0278Calcium^2
+
+# b)
+scatter_plot1 <- ggplot(data = Fluorescence, aes(x = Calcium, y = ProteinProp)) +
+geom_point() +
+stat_smooth(method = "lm", formula = y ~ poly(x, 2)) +
+labs(title = "Quadratic Regression Curve")
+print(scatter_plot1)
+
+# c)
+plot(model4)
+
+# L - Scatterplot is somewhat linear but shows curvature.
+# I - We can assume independence.
+# N - QQPlot is linear so normal condition is checked.
+# E - There is equal variance in the residual plot
+# R - We can assume random
+# Z - Residual plot seems to have equal residuals on both sides.
+
+# d)
+summary(model4)$coefficients
+# Since the p-value is ~ 0, the Calcium^2 term is significant
+
+# e)
+summary(model4)$r.squared
+# r^2 = 0.8941312, so 89.4% of variation explained by the model.
+
+
+# 3.42
+# a)
+Fluorescence$CalciumCube <- Fluorescence$Calcium^3
+model5 <- lm(ProteinProp ~ Calcium + CalciumSq + CalciumCube, data = Fluorescence)
+summary(model5)
+
+# ProteinProp = -6.52 - 3.14Calcium - 0.411Calcium^2 - 0.0165Calcium^3
+
+# b)
+scatter_plot2 <- ggplot(data = Fluorescence, aes(x = Calcium, y = ProteinProp)) +
+geom_point() +
+stat_smooth(method = "lm", formula = y ~ poly(x, 3)) +
+labs(title = "Cubic Regression Curve")
+print(scatter_plot2)
+
+# c)
+plot(model5)
+
+# L - Scatterplot is somewhat linear but shows curvature.
+# I - We can assume independence.
+# N - QQPlot has some curvature at the start and end so normal condition isn't checked.
+# E - There seems to be some patterns in the residual plot.
+# R - We can assume random
+# Z - Residual plot doesn't seem to be centered at zero.
+
+# d)
+summary(model5)$coefficients
+
+# p ~ 0, so the Calcium^3 term is significant
+
+# e)
+summary(model5)$r.squared
+# r^2 = 0.9449168, so 94.49% of the variability is explained by the model
+
+# 3.43
+# a)
+model6 <- lm(Margin ~ Days + I(Days^2), data = Pollster)
+summary(model6)
+
+SSE1 <- sum(residuals(model6)^2)
+# Margin = 4.478 - 0.6044Dqys + 0.0211Days^2. r^2 = 0.3495, SSE = 899
+
+# b)
+model7 <- lm(Margin ~ Days * Charlie, data = Pollster)
+summary(model7)
+
+# c)
+model8 <- lm(Margin ~ Days * Meltdown, data = Pollster)
+summary(model8)
+
+SSE3 <- sum(residuals(model8)^2)
+# Margin = 3.273 - 0.2429Days - 8.57Meltdown + 0.5917Days*Meltdown. r^2 = 0.324, SSE = 934.
+
+# d)
+# The model in part b has the largest r^2 value and the smallest SSE value, so that would be the best
+
+# 3.44)
+# a)
+CountyHealth$SqrtMDs <- sqrt(CountyHealth$MDs)
+cor(CountyHealth[, c("SqrtMDs", "Hospitals", "Beds")])
+
+# Beds has a strong correlation with sqrtmds than hospital does so it would be a stronger predictor by itself.
+
+# b)
+model9 <- lm(SqrtMDs ~ Hospitals, data = CountyHealth)
+summary(model9)$r.squared
+model10 <- lm(SqrtMDs ~ Beds, data = CountyHealth)
+summary(model10)$r.squared
+# r^2 for hospitals is 0.852 (85.2%), and it is 0.901 (90.1%) for beds. These values say what the portion of the variable of sqrtmds explained by the beds or hospitals is.
+
+# c)
+model11 <- lm(SqrtMDs ~ Hospitals + Beds, data = CountyHealth)
+summary(model11)$r.squared
+# r^2 = 0.9217, so 92.17% of variability is explained by the model.
+
+# 3.44d.)
+summary(model9)$coefficients
+summary(model10)$coefficients
+# Both p-values ~ 0, so both are significant
+
+# 3.44e.)
+summary(model11)$coefficients
+# In multiple regression model, both p-values are also ~ 0, so both variables are significant.
+
+```

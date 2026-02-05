@@ -1,0 +1,173 @@
+---
+title: "day4part2"
+author: "Amrit Singh"
+date: "2025-09-10"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+
+library(tidyverse)
+library(ggplot2)
+library(readr)
+
+# Load data
+Caterpillars <- read_csv("Caterpillars.csv")
+BaseballTimes2017 <- read_csv("BaseballTimes2017.csv")
+
+# Quick peek
+head(Caterpillars)
+head(BaseballTimes2017)
+
+# Remove NAs once up front
+caterpillars <- Caterpillars %>% drop_na()
+bball <- BaseballTimes2017
+
+# 1.30 Caterpillar N assimilation vs mass
+
+# (a) Nassim vs Mass
+ggplot(caterpillars, aes(x = Mass, y = Nassim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Nassim vs Mass", x = "Mass", y = "Nassim")
+# #There's a clear curve in the data, so a straight-line model wouldn't be a good fit.
+
+# (b) LogNassim vs LogMass
+caterpillars <- caterpillars %>%
+  mutate(LogMass = log10(Mass),
+         LogNassim = log10(Nassim))
+
+ggplot(caterpillars, aes(x = LogMass, y = LogNassim)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "LogNassim vs LogMass", x = "log10(Mass)", y = "log10(Nassim)")
+#The relationship is clearly positive, looking much more linear, though there's still a bit of curvature.
+
+# (c) Fit linear model on preferred scale (logs)
+m_nassim <- lm(LogNassim ~ LogMass, data = caterpillars)
+summary(m_nassim)
+coef(m_nassim)     # Prediction equation on log scale
+# I’d go with the log model since it follows a straighter pattern overall. - #Predicted LogNassim = -1.89 + 0.371 × LogMass
+
+# (d) Add grouping by Instar to chosen plot
+ggplot(caterpillars, aes(x = LogMass, y = LogNassim, color = factor(Instar))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "LogNassim vs LogMass by Instar",
+       x = "log10(Mass)", y = "log10(Nassim)", color = "Instar")
+#The first three Instar groups show a pretty clear linear trend, but there’s still some curvature in the 4th and 5th groups.
+
+# (e) Group by Free-growth period (Fgp)
+ggplot(caterpillars, aes(x = LogMass, y = LogNassim, color = Fgp)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "LogNassim vs LogMass by Fgp",
+       x = "log10(Mass)", y = "log10(Nassim)")
+#There definitely seems to be a stronger linear trend when the caterpillars are in a free-growth period.
+
+# 1.32 Mass predicting Intake (reverse roles)
+
+# (a) Intake vs Mass
+ggplot(caterpillars, aes(x = Mass, y = Intake)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Intake vs Mass", x = "Mass", y = "Intake")
+# There's a noticeable curve in the data, so a linear model wouldn’t be a good fit here.
+
+# (b) LogIntake vs LogMass
+caterpillars <- caterpillars %>%
+  mutate(LogIntake = log10(Intake))
+
+ggplot(caterpillars, aes(x = LogMass, y = LogIntake)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "LogIntake vs LogMass", x = "log10(Mass)", y = "log10(Intake)")
+# There’s a strong positive trend with much less curvature, though a slight curve is still present.
+
+# (c) Fit linear model on preferred (log) scale
+m_intake <- lm(LogIntake ~ LogMass, data = caterpillars)
+summary(m_intake)
+coef(m_intake)
+# I’d go with the second model since it’s a lot less curved and works better for linear regression.
+
+# (d) Add Instar groups
+ggplot(caterpillars, aes(x = LogMass, y = LogIntake, color = factor(Instar))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "LogIntake vs LogMass by Instar",
+       x = "log10(Mass)", y = "log10(Intake)", color = "Instar")
+# A linear model works well for the first three groups, but there's noticeable curvature in the last two.
+
+# 1.45 MLB game times (choose/fit/assess)
+
+# (a) Distribution of Time
+ggplot(bball, aes(x = Time)) +
+  geom_histogram(binwidth = 7) +
+  labs(title = "Histogram of Game Time", x = "Time (minutes)", y = "Count")
+summary(bball$Time)
+# The distribution looks roughly symmetric and follows a normal pattern.
+
+# (b) Scatterplots: Time vs predictors
+preds <- c("Runs", "Margin", "Pitchers", "Attendance")
+for (v in preds) {
+  print(
+    ggplot(bball, aes(x = .data[[v]], y = Time)) +
+      geom_point() +
+      geom_smooth(method = "lm", se = FALSE) +
+      labs(title = paste("Time vs", v), x = v, y = "Time (minutes)")
+  )
+}
+# The strongest linear relationship seems to be between time and runs, followed by time and pitchers.
+
+# (c) Choose best predictor (use Runs) and fit model
+mod_time_runs <- lm(Time ~ Runs, data = bball)
+summary(mod_time_runs)
+coef(mod_time_runs)
+
+# Residual/diagnostic plots
+res_df <- tibble(Fitted = fitted(mod_time_runs), Resid = resid(mod_time_runs))
+ggplot(res_df, aes(x = Fitted, y = Resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(title = "Residuals vs Fitted (Time ~ Runs)")
+ggplot(tibble(Resid = resid(mod_time_runs)), aes(sample = Resid)) +
+  stat_qq() + stat_qq_line() +
+  labs(title = "Q-Q Plot of Residuals")
+
+#The equation comes out to Predicted Time = 148 + 4.18 × Runs. This means that for every extra run scored, the game time increases by roughly 4.18 minutes.
+
+# 1.46 Outliers/influential points (CIN–MIL)
+
+# (a) Mark the CIN-MIL point on Time vs Runs
+cin_mil <- bball %>% filter(Game == "CIN-MIL")
+ggplot(bball, aes(x = Runs, y = Time)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_point(data = cin_mil, color = "red", size = 4) +
+  geom_text(data = cin_mil, aes(label = Game), vjust = -1) +
+  labs(title = "Time vs Runs with CIN-MIL highlighted")
+
+#46A - #This point is distant from the main cluster but aligns with the overall trend, so it likely won’t have a major effect on the regression line.
+
+# (b) Omit CIN-MIL and refit
+bball_no_cinmil <- bball %>% filter(Game != "CIN-MIL")
+mod_time_runs_no <- lm(Time ~ Runs, data = bball_no_cinmil)
+summary(mod_time_runs_no)
+coef(mod_time_runs_no)
+#46B - #The updated equation, Time = 146.97 + 4.3 × Runs, is nearly identical to the previous 148 + 4.18 × Runs, indicating that removing the point didn’t significantly affect the model.
+
+# (c) With CIN-MIL removed, check Time vs all other predictors
+num_vars <- c("Runs","Margin","Pitchers","Attendance")
+for (v in num_vars) {
+  print(
+    ggplot(bball_no_cinmil, aes(x = .data[[v]], y = Time)) +
+      geom_point() +
+      geom_smooth(method = "lm", se = FALSE) +
+      labs(title = paste("Time vs", v, "(CIN-MIL removed)"),
+           x = v, y = "Time (minutes)")
+  )
+}
+#Time is closely linked to both runs and the number of pitchers. However, after taking out the CIN-MIL game, the relationship between time and runs became less strictly linear, now resembling the weaker linear trend seen between time and pitchers.
+```

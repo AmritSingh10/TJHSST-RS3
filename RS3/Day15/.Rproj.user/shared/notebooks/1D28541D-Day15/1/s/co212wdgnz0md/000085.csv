@@ -1,0 +1,6 @@
+"0",""
+"0","ggplot(meniscus, aes(x = Method, y = Displacement, fill = Method)) +"
+"0","geom_boxplot() +"
+"0","labs(x = ""Repair method"", y = ""Displacement"") +"
+"0","theme_minimal() +"
+"0","theme(legend.position = ""none"")"

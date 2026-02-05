@@ -1,0 +1,3 @@
+"0","Alfalfa %>%"
+"0","  group_by(Acid) %>%"
+"0","  summarize(mean = mean(Ht4))"

@@ -1,0 +1,78 @@
+---
+title: "Day6Part2"
+author: "Amrit Singh"
+date: "2025-09-22"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(readr)
+
+# 2.44
+TextPrices <- read_csv("TextPrices.csv")
+model_textbooks <- lm(Price ~ Pages, data = TextPrices)
+predict(model_textbooks, newdata = data.frame(Pages = 450),
+       interval = "confidence", level = 0.95)
+
+# a. The 95% confidence interval for the mean cost of a 450-page textbook ranges from about $51.73 to $74.02, indicating strong confidence that the true average price of such books lies within this interval.
+
+predict(model_textbooks, newdata = data.frame(Pages = 450),
+       interval = "prediction", level = 0.95)
+
+# b. For an individual 450-page textbook, the 95% prediction interval spans about $0.90 to $124.85, reflecting the larger spread in single prices versus the mean.
+
+# c. Both intervals share the same midpoint (~$62.88), as they center on the regression model’s predicted value.
+
+# d. The prediction interval is noticeably wider than the confidence interval because it incorporates individual price variation, not just uncertainty in the average.
+
+# e. The narrowest prediction interval occurs near the dataset’s mean page count (~464.5), where variation from distance to the average is minimized.
+
+# f. The 95% prediction interval for a 1500-page textbook is about $143.36 to $291.78. But since 1500 pages lies far outside the data’s observed range, this is extrapolation, and the model’s reliability here is questionable.
+
+# 2.47
+RailsTrails <- read_csv("RailsTrails.csv")
+model_rails <- lm(adj2007 ~ distance, data = RailsTrails)
+predict(model_rails, newdata = data.frame(distance = 0.5))
+
+# a. A house half a mile from the trail is predicted to sell for ~$360,990.
+
+predict(model_rails, newdata = data.frame(distance = 0.5),
+       interval = "prediction", level = 0.90)
+
+# b. The 90% prediction interval ranges from about $207,017 to $514,964, indicating that most homes half a mile away are expected to fall within this price bracket.
+plot(model_rails, which = 1)
+
+# c. The residual plot shows unequal variance, suggesting the constant variance assumption is violated, which reduces the reliability of the intervals in (a) and (b).
+
+model_log <- lm(log(adj2007) ~ log(distance), data = RailsTrails)
+predict(model_log, newdata = data.frame(distance = 0.5),
+       interval = "prediction", level = 0.90)
+
+# d. With a log transformation, the 90% prediction interval is (5.36, 6.21) in log-dollars, or roughly $211,866 to $499,049 after conversion. This interval is narrower, meaning the logged model provides more precise predictions.
+
+plot(model_log, which = 1)
+
+# e. The log-transformed model shows much more stable variance, so assumptions are met better. The interval back on the dollar scale is narrower, reflecting the improved model fit.
+
+# 2.54
+BaseballTimes2017 <- read_csv("BaseballTimes2017.csv")
+numeric_data <- BaseballTimes2017 %>% select(where(is.numeric))
+cor(numeric_data)
+# a. The predictor with the strongest correlation to game length is Runs (r ≈ 0.745).
+
+model_runs <- lm(Time ~ Runs, data = BaseballTimes2017)
+summary(model_runs)
+
+# b. The fitted regression model is Time = 148.04 + 4.18 × Runs, meaning each additional run increases average game time by about 4.2 minutes.
+
+# c. With p ≈ 0.002, we reject the null hypothesis, concluding that runs have a significant effect on game duration.
+
+plot(model_runs, which = 1)
+plot(model_runs, which = 2)
+
+# d. The residuals vs fitted plot shows no major pattern, which is good. The Q–Q plot suggests slight right-skew in the residuals. Despite this imperfection, the small p-value provides strong evidence of a correlation.
+
+```

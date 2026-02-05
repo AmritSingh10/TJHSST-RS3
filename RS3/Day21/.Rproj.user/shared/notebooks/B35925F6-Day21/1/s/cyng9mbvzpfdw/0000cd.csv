@@ -1,0 +1,8 @@
+"0","# A reasonably clear trend is visible, and the slope one would eyeball is close to 0.75."
+"0","# Tukey’s rule: suggested power = 1 – slope = ~0.25."
+"0",""
+"0","# 40"
+"0","Contra <- read.csv(""Contraceptives.csv"")"
+"0","plot(Contra$Comparison, Contra$Residual,"
+"0","    xlab=""Comparison Values"", ylab=""Residuals"","
+"0","    main=""Tukey Additivity Plot"")"

@@ -1,0 +1,1 @@
+"0","abline(lm(Contra$Residual ~ Contra$Comparison), col=""blue"")"

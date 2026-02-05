@@ -1,0 +1,8 @@
+"0",""
+"0","river_wide <- river %>%"
+"0","  select(River, Site, Iron) %>%"
+"0","  pivot_wider("
+"0","    names_from = Site,"
+"0","    values_from = Iron"
+"0","  )"
+"0","river_wide"

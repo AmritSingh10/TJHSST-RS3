@@ -1,0 +1,121 @@
+---
+title: "Day20"
+author: "Amrit Singh"
+date: "2025-12-06"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(readr)
+library(tidyverse)
+library(tidyr)
+
+# 6.7)
+# a) If the F-ratio is close to 1, the group differences are likely just due to random variance.
+# b) If the F-ratio is around 10, that's unusually large, meaning random chance likely isn’t responsible and at least one mean stands out.
+
+#6.9)
+# a) The df for 1s factor = K-1 = 4-1 = 3
+# b) The df for 2nd factor = J-1 = 5-1 = 4
+# c) The residual df = (K-1)(J-1) = (4-1)*(5-1) = 12
+
+# 6.11)
+# a) Large
+# b) Less
+
+
+# 6.12)
+# a) Smaller
+# b) More
+
+#6.32)
+# a)
+contraceptives <- read.csv("Contraceptives.csv")
+library(tidyr)
+contra_wide <- contraceptives %>%
+  select(ID, Treatment, EE.AUC) %>%
+  pivot_wider(
+    names_from = Treatment, 
+    values_from = EE.AUC
+)
+head(contra_wide)
+
+ggplot(contra_wide, aes(x = Placebo, y = Drug)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Anscombe Plot: New Drug vs Placebo",
+    x = "Placebo EE",
+    y = "New Drug EE"
+  )
+
+model_contra <- lm(Drug ~ Placebo, data = contra_wide)
+summary(model_contra)$coefficients
+
+# b) No transformation because the slope is close to 1.
+
+# 6.34
+river <- read.csv("RiverIron.csv")
+head(river)
+
+river_wide <- river %>%
+  select(River, Site, Iron) %>%
+  pivot_wider(
+    names_from = Site,
+    values_from = Iron
+  )
+river_wide
+
+ggplot(river_wide, aes(x = MidStream, y = DownStream)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "brown") +
+  labs(
+    title = "Iron_DownStream vs Iron_MidStream",
+    x = "Iron_MidStream",
+    y = "Iron_DownStream"
+  )
+
+ggplot(river_wide, aes(x = Upstream, y = MidStream)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "brown") +
+  labs(
+    title = "Iron_MidStream vs Iron_UpStream",
+    x = "Iron_UpStream",
+    y = "Iron_MidStream"
+  )
+
+ggplot(river_wide, aes(x = Upstream, y = MidStream)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "brown") +
+  labs(
+    title = "Iron_MidStream vs Iron_UpStream",
+    x = "Iron_UpStream",
+    y = "Iron_MidStream"
+  )
+
+ggplot(river_wide, aes(x = Upstream, y = DownStream)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "brown") +
+  labs(
+    title = "Iron_DownStream vs Iron_UpStream",
+    x = "Iron_UpStream",
+    y = "Iron_DownStream"
+  )
+
+library(broom)
+
+model1 <- lm(DownStream ~ MidStream, data = river_wide)
+model2 <- lm(MidStream ~ Upstream, data = river_wide)
+model3 <- lm(DownStream ~ Upstream, data = river_wide)
+
+slopes <- c(
+  slope_Down_vs_Mid = coef(model1)[2],
+  slope_Mid_vs_Up = coef(model2)[2],
+  slope_Down_vs_Up = coef(model3)[2]
+)
+slopes
+
+# A transformation could be good here because they're all different values than 1.
+```

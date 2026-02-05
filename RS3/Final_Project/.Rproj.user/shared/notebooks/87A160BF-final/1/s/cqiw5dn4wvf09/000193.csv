@@ -1,0 +1,7 @@
+"0",""
+"0","glance(step_model) %>%"
+"0","  kable("
+"0","    digits = 4,"
+"0","    format = ""pandoc"","
+"0","    caption = ""Model Fit Summary: Stepwise Model"""
+"0","  )"

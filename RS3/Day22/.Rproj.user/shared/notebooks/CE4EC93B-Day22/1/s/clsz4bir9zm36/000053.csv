@@ -1,0 +1,1 @@
+"0","ggplot(MentalHealth, aes(x = Month, y = Admission)) + geom_boxplot() + ggtitle(""Admissions by Month"")"

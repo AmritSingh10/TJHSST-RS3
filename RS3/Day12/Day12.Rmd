@@ -1,0 +1,73 @@
+---
+title: "Day12"
+author: "Amrit Singh"
+date: "2025-10-27"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(Stat2Data)
+library(readr)
+
+# 13. Each coefficient shows how the average birth weight of that racial group compares to the White group, which is used as the baseline.
+
+# 14a. The P-value for Black mothers (0.000) is below 0.05, providing strong evidence that their average birth weight is different from that of White mothers. In contrast, the P-values for Hispanic (0.731) and Other (0.825) groups exceed 0.05, indicating no statistically significant differences from Whites.
+
+# 14b. Race accounts for about 1.9% of the variation in birth weight.
+
+# 14c. The overall P-value (0.000) indicates that at least one racial category significantly improves our ability to predict birth weight.
+
+Caterpillars <-read_csv("Caterpillars.csv")
+BaseballTimes2017 <-read_csv("BaseBallTimes2017.csv")
+
+model <- lm(LogNassim ~ LogMass, data = Caterpillars)
+summary(model)
+
+Caterpillars$Instar <- relevel(factor(Caterpillars$Instar), ref = 5)
+model <- lm(LogNassim ~ factor(Instar), data = Caterpillars)
+summary(model)
+
+model <- lm(LogNassim ~ LogMass + factor(Instar), data = Caterpillars)
+summary(model)
+
+anova(model, lm(LogNassim ~ factor(Instar), data = Caterpillars))
+
+anova(model, lm(LogNassim ~ LogMass, data = Caterpillars))
+
+# 16a. 75.55%
+
+# 16b. 83.48%, indicating improvement over the model in part (a).
+
+# 16c. The predicted mean LogNassim for Instar 5 caterpillars is -1.474. Instar 1 caterpillars are estimated to have a mean LogNassim that is 1.249 units lower than those in Instar 5.
+
+# 16d. The model accounts for 83.61% of the variation in LogNassim (R^2 = 83.61%), showing better performance than the model in part (a) and a slight improvement over part (b).
+
+# 16e. Using a hypothesis test for H0: β₁ = 0 vs. Ha: β1 ≠ 0, the P-value of 0.1678 (greater than 0.05) suggests there is not enough evidence to consider LogMass a significant predictor in this model.
+
+# 16f. A nested F-test evaluating H0: β2 = β3 = β4 = β5 = 0 versus Ha: at least one of these coefficients is nonzero yields a P-value of 0.000, strongly indicating that the Instar dummy variables meaningfully enhance the model.
+
+model <- lm(Time ~ Pitchers + Attendance, data = BaseballTimes2017)
+summary(model)
+summary(model)$r.squared
+
+BaseballTimes2017_scrambled <- BaseballTimes2017
+BaseballTimes2017_scrambled$Time <- sample(BaseballTimes2017$Time)
+model_scrambled <- lm(Time ~ Pitchers + Attendance, data = BaseballTimes2017_scrambled)
+summary(model_scrambled)$r.squared
+
+num_iterations <- 10000
+r_squared_values <- rep(NA, num_iterations)
+for (i in 1:num_iterations) {
+  BaseballTimes2017_scrambled$Time <- sample(BaseballTimes2017$Time)
+  model_scrambled <- lm(Time ~ Pitchers + Attendance, data = BaseballTimes2017_scrambled)
+  r_squared_values[i] <- summary(model_scrambled)$r.squared
+}
+hist(r_squared_values, xlab = "Randomization R-squared", ylab = "Frequency")
+
+mean(r_squared_values >= summary(model)$r.squared)
+```

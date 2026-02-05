@@ -1,0 +1,97 @@
+---
+title: "Day18"
+author: "Amrit Singh"
+date: "2025-11-19"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(car)
+library(agricolae)
+
+fantasy <- read.csv("FantasyBaseball.csv")
+metro <- read.csv("MetroCommutes.csv")
+
+fantasy$Person <- as.factor(fantasy$Person)
+fantasy$Round <- as.factor(fantasy$Round)
+metro$City <- metro$city
+metro$Time <- metro$time
+metro$City <- as.factor(metro$City)
+
+# 5.64
+metro_clean <- metro %>% filter(!is.na(Time) & Time > 0)
+metro_clean$LogCommute <- log(metro_clean$Time)
+log_model_metro <- aov(LogCommute ~ City, data = metro_clean)
+summary(log_model_metro)
+LSD.test(log_model_metro, "City", p.adj = "none")$groups
+
+# Fisher's LSD = 0.091
+
+# 5.65
+metro$SqrtCommute <- sqrt(metro$Time)
+sqrt_model_metro <- aov(SqrtCommute ~ City, data = metro)
+summary(sqrt_model_metro)
+LSD.test(sqrt_model_metro, "City", p.adj = "none")$groups
+# Fisher's LSD = 0.213
+
+# 5.66 a)
+boxplot(Time ~ Person, data = fantasy,
+  main = "Selection Times by Participant",
+  ylab = "Time (seconds)")
+summary_stats <- fantasy %>%
+  group_by(Person) %>%
+  summarise(mean = mean(Time), sd = sd(Time),
+    min = min(Time), max = max(Time))
+summary_stats
+summary_stats %>% filter(mean == max(mean))
+summary_stats %>% filter(mean == min(mean))
+
+# Boxplots show that the distributions are right skewed. JW is slower and TS is the fastest.
+
+# b)
+anova_model <- aov(Time ~ Person, data = fantasy)
+summary(anova_model)
+# From the ANOVA table, we can conclude that one of the participants has a different mean selection time
+
+# c)
+LSD.test(anova_model, "Person", p.adj = "none")$groups
+# JW is a lot slower then everyone else and TS is significantly faster than everyone other than BK.
+
+# 5.67 a)
+qqPlot(anova_model, main = "Q-Q Plot of Residuals")
+
+# Not linear -> ANOVA model not appropriate without transformations
+# 5.67 b)
+fantasy$LogTime <- log(fantasy$Time)
+  boxplot(LogTime ~ Person, data = fantasy,
+    main = "Log(Selection Times) by Participant",
+    ylab = "Log(Time)")
+log_anova_model <- aov(LogTime ~ Person, data = fantasy)
+summary(log_anova_model)
+LSD.test(log_anova_model, "Person", p.adj = "none")$groups
+# From the ANOVA table, we see that there is a significant difference in ln
+
+# 5.69
+round_anova_model <- aov(LogTime ~ Round, data = fantasy)
+par(mfrow = c(2, 2))
+qqnorm(resid(round_anova_model), main = "Normal Q-Q Plot")
+qqline(resid(round_anova_model))
+plot(fitted(round_anova_model), resid(round_anova_model),
+  xlab = "Fitted Value", ylab = "Residual",
+  main = "Residuals vs Fitted")
+abline(h = 0, lty = 2)
+hist(resid(round_anova_model), breaks = 20,
+  main = "Histogram of Residuals", xlab = "Residual")
+plot(resid(round_anova_model), type = "b",
+  xlab = "Observation Order", ylab = "Residual",
+  main = "Residuals vs Order")
+abline(h = 0, lty = 2)
+par(mfrow = c(1, 1))
+summary(round_anova_model)
+
+# Conditions are met so proceed with ANOVA test. Since p is > 0.05, we don't have enough evidence to reject the hypothesis.
+```

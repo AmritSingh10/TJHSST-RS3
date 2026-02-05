@@ -1,0 +1,7 @@
+"0",""
+"0","tidy(log_step_model, conf.int = TRUE) %>%"
+"0","  kable("
+"0","    digits = 4,"
+"0","    format = ""pandoc"","
+"0","    caption = ""Log-Transformed Stepwise Model (Enrollment Totals)"""
+"0","  )"

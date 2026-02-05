@@ -1,0 +1,161 @@
+---
+title: "Day2_WeightLoss"
+author: "Amrit Singh"
+date: "2025-08-31"
+output: word_document
+---
+
+```{r}
+library(readr)
+library(mosaic)
+library(tidyverse)
+library(Stat2Data)
+
+# Problem 23: Weight Loss Incentive
+WeightLossIncentive7 <- read_csv("WeightLossIncentive7.csv")
+
+head(WeightLossIncentive7)
+
+sapply(WeightLossIncentive7$Month7Loss, mean, na.rm=TRUE)
+
+mean_loss <- mean(WeightLossIncentive7$Month7Loss, na.rm = TRUE)
+
+summary <- WeightLossIncentive7 %>%
+  group_by(Group) %>%
+  summarize(
+    mean_Loss = mean(Month7Loss, na.rm = TRUE),
+    std_dev = sd(Month7Loss, na.rm = TRUE),
+    N = sum(!is.na(Month7Loss))
+  )
+print(summary)
+
+cont <- WeightLossIncentive7$Month7Loss[WeightLossIncentive7$Group == "Control"]
+inc  <- WeightLossIncentive7$Month7Loss[WeightLossIncentive7$Group == "Incentive"]
+
+hist(cont, breaks = 15, main = "Month7Loss - Histogram- Cont",
+     xlab = "Pounds of weight lost", col = "lightblue")
+
+hist(inc, breaks = 15, main = "Month7Loss - Histogram - Incent",
+     xlab = "Pounds of weight lost", col = "lightgreen")
+
+mean_cont <- mean(cont, na.rm = TRUE)
+mean_inc  <- mean(inc, na.rm = TRUE)
+
+print(mean_cont)
+print(mean_inc)
+
+residuals_cont <- cont - mean_cont
+residuals_inc  <- inc - mean_inc
+
+stripchart(residuals_cont, method = "stack", pch = 16,
+           main = "Control - Dotplot - Residuals", xlab = "Residual value",
+           at = 0, offset = 0.45, cex = 2, col = "lightblue")
+
+stripchart(residuals_inc, method = "stack", pch = 16,
+           main = "Incentive - Dotplot - Residuals", xlab = "Residual value",
+           at = 0, offset = 0.45, cex = 2, col = "lightgreen")
+
+t_Test_Results <- t.test(Month7Loss ~ Group, data = WeightLossIncentive7, alternative = "less")
+print(t_Test_Results)
+
+
+# Problem 26: Marathon Short vs Long
+Marathon_data <- read_csv("Marathon.csv")
+
+head(Marathon_data)
+
+Marathon_data %>%
+  group_by(Short) %>%
+  select(PaceMin) %>%
+  summarize(average = mean(PaceMin, na.rm=TRUE),
+            std_dev = sd(PaceMin, na.rm=TRUE))
+
+stripchart(PaceMin ~ Short, data = Marathon_data,
+           main = "pace vs distance in Marathon",
+           xlab = "Pace traveled", ylab = "Distance traveled",
+           method = "stack", offset = 0.45, pch = 16, col = "lightblue")
+
+Marathon_t_Test <- t.test(PaceMin ~ Short, data = Marathon_data)
+print(Marathon_t_Test)
+
+
+# Problem 27: Marathon Before vs After 2004
+Marathon_data <- read_csv("Marathon.csv")
+
+Marathon_data %>%
+  group_by(After2004) %>%
+  summarize(
+    average = mean(PaceMin, na.rm=TRUE),
+    std_dev = sd(PaceMin, na.rm=TRUE)
+  )
+
+stripchart(PaceMin ~ After2004, data = Marathon_data,
+           main = "pace vs time period graph",
+           xlab = "pace time", ylab = "Time variable - After 2004",
+           method = "stack", offset=0.45, pch = 16, col = "lightblue")
+
+t_Test <- t.test(PaceMin ~ After2004, data = Marathon_data)
+print(t_Test)
+
+Marathon_data %>%
+  group_by(After2004) %>%
+  summarize(
+    average = mean(Miles, na.rm=TRUE),
+    std_dev = sd(Miles, na.rm=TRUE)
+  )
+
+stripchart(Miles ~ After2004, data = Marathon_data,
+           main = "miles vs time period data",
+           xlab = "Miles", ylab = "Time after 2004",
+           method = "stack", offset=0.45, pch = 16, col = "lightblue")
+
+T_Test_data <- t.test(Miles ~ After2004, data = Marathon_data)
+print(T_Test_data)
+
+
+# Problem 30
+Marathon_data <- read_csv("Marathon.csv")
+
+summary_stats <- Marathon_data %>%
+  group_by(Short) %>%
+  summarize(
+    avg_pace = mean(Pace, na.rm=TRUE),
+    sd_pace  = sd(Pace, na.rm=TRUE)
+  ) %>%
+  filter(Short %in% c(0,1))
+
+avg1 <- summary_stats$avg_pace[summary_stats$Short == 0]
+sd1  <- summary_stats$sd_pace[summary_stats$Short == 0]
+
+avg2 <- summary_stats$avg_pace[summary_stats$Short == 1]
+sd2  <- summary_stats$sd_pace[summary_stats$Short == 1]
+
+pooled_sd <- sqrt((sd1^2 + sd2^2)/2)
+effect_size <- abs(avg1 - avg2)/pooled_sd
+effect_size
+
+
+# Problem 31
+Marathon_data <- read_csv("Marathon.csv")
+Handwriting   <- read_csv("Handwriting.csv")
+head(Handwriting)
+
+summary_stats <- Marathon_data %>%
+  group_by(After2004) %>%
+  summarize(
+    avg_miles = mean(Miles, na.rm=TRUE),
+    sd_miles  = sd(Miles, na.rm=TRUE)
+  ) %>%
+  filter(After2004 %in% c(0,1))
+
+avg1 <- summary_stats$avg_miles[summary_stats$After2004 == 0]
+sd1  <- summary_stats$sd_miles[summary_stats$After2004 == 0]
+
+avg2 <- summary_stats$avg_miles[summary_stats$After2004 == 1]
+sd2  <- summary_stats$sd_miles[summary_stats$After2004 == 1]
+
+pooled_sd <- sqrt((sd1^2 + sd2^2)/2)
+effect_size <- abs(avg1 - avg2)/pooled_sd
+effect_size
+
+```

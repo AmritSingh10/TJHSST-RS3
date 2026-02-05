@@ -1,0 +1,6 @@
+"0",""
+"0","amyloid %>%"
+"0","group_by(Group) %>%"
+"0","summarise(n = n(),"
+"0","mean_Abeta = mean(Abeta, na.rm = TRUE),"
+"0","sd_Abeta = sd(Abeta, na.rm = TRUE))"

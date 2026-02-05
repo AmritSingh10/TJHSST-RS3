@@ -1,0 +1,1 @@
+"0","abline(lm(log_s~ log_avg, data = log_summary))"

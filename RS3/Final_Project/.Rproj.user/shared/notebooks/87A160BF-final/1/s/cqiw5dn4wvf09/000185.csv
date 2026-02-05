@@ -1,0 +1,5 @@
+"0",""
+"0","qqnorm("
+"0","  resid(step_model),"
+"0","  main = ""Normal Q-Q Plot (Stepwise Model)"""
+"0",")"

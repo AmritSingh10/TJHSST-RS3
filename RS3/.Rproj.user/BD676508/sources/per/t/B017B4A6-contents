@@ -1,0 +1,73 @@
+---
+title: "Day 1"
+author: "Amrit Singh"
+date: "2025-08-26"
+output: word_document
+---
+
+```{r}
+library(readr)
+library(mosaic)
+library(tidyverse)
+Handwriting <- read_csv("Day 1/Handwriting.csv")
+
+Survey2 <- na.omit(Handwriting$Survey2)
+
+head(Handwriting)
+
+# 1) Histogram of Survey2
+hist(Survey2,
+     breaks = 10,
+     main = "Survey 2 Histogram",
+     xlab  = "Percentage Correct")
+
+# 2) Summary of Survey2
+summary(Survey2)
+
+# 3) Residual diagnostics for Survey2
+residuals <- Survey2 - mean(Survey2)
+
+stripchart(residuals, method = "stack",
+           pch = 16, main = "Residuals Dotplot",
+           xlab = "Residual values", at = 0,
+           offset = 0.3, cex = 0.5)
+
+qqnorm(residuals, main = "The normal probability plot",
+       xlab = "Score value", ylab = "Residual values", pch = 16)
+qqline(residuals, col = "blue", lwd = 4)
+
+# 4) One-sample t-test: is mean(Survey2) > 50
+t.test(Survey2, mu = 50, alternative = "greater")
+
+# Clean rows needed for gender comparisons
+# (Assumes Gender coded 0/1; label for nicer output)
+Handwriting2 <- Handwriting |>
+  dplyr::filter(!is.na(Survey2), !is.na(Gender)) |>
+  dplyr::mutate(Gender = factor(Gender,
+                                levels = c(0, 1),
+                                labels = c("Male", "Female")))
+
+# 5) Boxplot by Gender
+boxplot(Survey2 ~ Gender, data = Handwriting2,
+        main = "Gender Comparison (Guessing Ability)",
+        ylab  = "Percentage Correct")
+
+# 6) Group means by Gender
+aggregate(Survey2 ~ Gender, data = Handwriting2, FUN = mean)
+
+# 7) Residual diagnostics from a simple linear model Survey2 ~ Gender
+residuals_gender <- lm(Survey2 ~ Gender, data = Handwriting2)$residuals
+
+stripchart(residuals_gender, method = "stack", pch = 20,
+           main = "Dotplot of Residuals (by Gender model)",
+           xlab = "Residual values", at = 0,
+           offset = 0.5, cex = 0.5)
+
+qqnorm(residuals_gender, main = "The normal probability plot (by Gender model)",
+       xlab = "Score values", ylab = "Residual values", pch = 20)
+qqline(residuals_gender, col = "blue", lwd = 4)
+
+# 8) Two-sample (Welch) t-test between genders
+t.test(Survey2 ~ Gender, data = Handwriting2)
+
+```

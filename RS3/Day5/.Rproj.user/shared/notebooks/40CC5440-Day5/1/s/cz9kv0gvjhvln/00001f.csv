@@ -1,0 +1,3 @@
+"0",""
+"0","reg = lm(BrainpH$pH~BrainpH$Age)"
+"0","abline(reg, col = ""blue"")"

@@ -1,0 +1,8 @@
+"0","# No. The normal probability plot appears consistent with normality; there is no strong departure from linearity."
+"0",""
+"0","# c)"
+"0","shrew_fit <- fitted(shrew_mod)"
+"0","plot(shrew_fit, shrew_res,"
+"0","     xlab = ""Fitted Heart Rate"","
+"0","     ylab = ""Residual"","
+"0","     main = ""Residuals vs Fitted: Sleeping Shrews"")"

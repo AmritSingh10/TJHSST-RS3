@@ -1,0 +1,108 @@
+---
+title: "Day9"
+author: "Amrit Singh"
+date: "2025-10-06"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(Stat2Data)
+library(graphics)
+library(readr)
+
+LB2 <- read_csv("LewyB2.csv")
+head(LB2)
+mlb <- read_csv("MLBStandings2016.csv")
+head(mlb)
+RT <- read_csv("RailsTrails.csv")
+head(RT)
+caterpillars <- read_csv("Caterpillars.csv")
+head(caterpillars)
+
+#12
+#a) To compare how metabolic rate depends on body size across free and non-free growth periods, use this model: MR = b0 + b1(BodySize) + b2(Ifgp) + b3(BodySize × Ifgp) + error. Here, Ifgp is a dummy variable indicating whether the observation comes from the free growth period.
+#b) If the effect of body size on metabolic rate (slope) remains the same across growth periods, but the baseline (intercept) differs, the model becomes: MR = b0 + b1(BodySize) + b2(Ifgp) + error. This means both groups share the same rate of change, but start at different average metabolic rates.
+#c) To determine whether one or two regression lines are needed, compare two models: Full model: MR = b0 + b1(BodySize) + b2(Ifgp) + b3(BodySize × Ifgp) + error. Reduced model: MR = b0 + b1(BodySize) + error. If the interaction and group variables don’t significantly improve the fit, one regression line suffices.
+
+#14
+#a) Degrees of freedom are calculated as the total sample size minus the number of predictors minus one. With three predictors, that’s 53 - 3 - 1 = 49.
+#b) If there are two predictors, then 53 - 2 - 1 = 50 degrees of freedom. In general, adding more predictors reduces the remaining degrees of freedom for the error term.
+
+#48
+RT$garagegroup <- as.factor(RT$garagegroup)
+boxplot(adj2007 ~ garagegroup, data = RT, xlab = "Price in Dollars")
+valid <- RT$adj2007[RT$garagegroup == "no"]
+invalid <- RT$adj2007[RT$garagegroup == "yes"]
+
+summary1 <- t.test(valid, invalid, var.equal = FALSE)
+print(summary1)
+
+mod1 <- lm(adj2007 ~ distance, data = RT)
+summary(mod1)
+print(summary)
+
+mod2 <- lm(adj2007 ~ distance * garagegroup , data = RT)
+summary(mod2)
+print(summary)
+
+mod3 <- lm(adj2007 ~ distance, data = RT)
+anova(mod1, mod2)
+
+#a) A two-sample t-test indicated an average difference of roughly $53,000, with a p-value nearly equal to 0.
+#b) Adding a second predictor slightly improved the model’s R^2, increasing it from 23.74% to 26.93%.
+#c) Results were obtained from the code output.
+#d) In terms of price trends, homes without garages had a slope of -46.302, while those with garages had -56.18, with a p-value of 0.611.
+#e) Because the p-value was 0.1034, there isn’t significant evidence that garage status meaningfully affects predicted home prices.
+
+#49
+model1 <- lm(log(adj2007) ~ log(distance) + log(squarefeet) + no_full_baths, data = RT)
+summary(model1)
+print(summary)
+
+plot(fitted(model1), resid(model1),xlab = "Fitted", ylab = "Residual", main = "log of 2007 Adj. ~ Distance Log + SqFt Log + nfb",
+pch = 14, col = "red")
+qqnorm(resid(model1))
+
+mod2 <- lm(log(adj2007) ~ log(distance) * log(squarefeet) * no_full_baths, data = RT)
+summary(mod2)
+
+print(summary)
+anova(model1,mod2)
+
+#a) As distance from the trail increases, home prices decrease by about 0.04883. Larger homes are more expensive, adding roughly 0.59328 per square foot, and each full bath increases value by about 0.05667.
+#b) Both models seem to satisfy the necessary assumptions.
+#c) Comparing the models shows that the R² value rose from around 78% to 80%, indicating a clear improvement.
+#d) With a p-value of 0.09, there isn’t sufficient evidence to confirm that this model outperforms the previous one.
+
+#52
+LB2$V <- as.integer(LB2$Type == "DLB/AD")
+model1 <- glm(MMSE ~ APC, data = LB2)
+summary(model1)
+
+model2 <- glm(MMSE ~ APC * V, data = LB2)
+anova_result <- anova(model1, model2, test = "Chisq")
+print(anova_result)
+
+#a) The regression equation is: MMSE = -0.585 + 2.32(APC) - 1.85(Type DLB/AD) - 0.97(APC × Type DLB/AD).
+#b) The t-value was -0.77, and with a p-value of 0.449 (above the alpha level), this variable isn’t statistically significant.
+#c) From the summary, the F-statistic is 1.342, with a corresponding p-value of 0.2744.
+
+#56
+datasubset <- cor(mlb[, c("WinPct", "BattingAverage", "Runs", "Hits", "HR", "Doubles", "Triples", "RBI", "SB", "OBP", "ERA")], use="complete.obs")
+cor_matrix <- as.data.frame(datasubset)
+print(cor_matrix)
+mod6 <- lm(WinPct ~ Runs + ERA, data = mlb)
+summary(mod6)
+print(summary)
+mod7 <- lm(WinPct ~ Runs + ERA + RBI, data = mlb)
+summary(mod7)
+print(summary)
+
+#a) The adjusted R^2 value is calculated to be 0.7968.
+#b) The updated adjusted R^2 decreases to 0.7894, indicating that adding extra predictors can sometimes lower model performance instead of improving it.
+```

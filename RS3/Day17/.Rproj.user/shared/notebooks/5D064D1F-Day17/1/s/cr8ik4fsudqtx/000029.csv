@@ -1,0 +1,7 @@
+"0",""
+"0","# The SS doplot is right skewed and has little variability. Also, there are outliers in all three groups"
+"0",""
+"0","# b.)"
+"0","hawks_filtered %>%"
+"0","  group_by(Species) %>%"
+"0","  summarize(SD = sd(Weight))"

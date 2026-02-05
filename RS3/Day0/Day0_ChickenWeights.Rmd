@@ -1,0 +1,78 @@
+---
+title: "Day0_ChickenWeights"
+author: "Amrit Singh"
+date: "2025-08-21"
+output:
+  word_document: default
+  html_document: default
+---
+```{r}
+library(tidyverse)
+
+data("ChickWeight")
+head(ChickWeight)
+
+total_chickens <- ChickWeight %>% summarise(n = n_distinct(Chick))
+total_chickens
+
+# Summary Exercises
+
+# 1) Average weight on Day 18 (any diet)
+avg_day18 <- ChickWeight %>%
+  filter(Time == 18) %>%
+  summarise(avg_weight = mean(weight))
+avg_day18
+
+# 2) Total number of chickens per diet
+chicks_per_diet <- ChickWeight %>%
+  group_by(Diet) %>%
+  summarise(total_chicks = n_distinct(Chick), .groups = "drop")
+chicks_per_diet
+
+# 3) Standard deviation of weights on Day 0 and Day 21
+sd_day0  <- ChickWeight %>% filter(Time == 0)  %>% summarise(std_dev = sd(weight))
+sd_day21 <- ChickWeight %>% filter(Time == 21) %>% summarise(std_dev = sd(weight))
+sd_day0; sd_day21
+
+# 4) For Day 21, mean and SD grouped by Diet (labels: mean_weight, std_dev)
+day21_by_diet <- ChickWeight %>%
+  filter(Time == 21) %>%
+  group_by(Diet) %>%
+  summarise(mean_weight = mean(weight),
+            std_dev     = sd(weight),
+            .groups = "drop")
+day21_by_diet
+
+# Visualization Exercises
+
+# 1) Filter weights on Day 14 for Diet 3; save as wt_day14_diet3
+wt_day14_diet3 <- ChickWeight %>%
+  filter(Time == 14, Diet == 3)
+
+# Dot plot (Counts of points binned along x)
+ggplot(wt_day14_diet3, aes(x = weight)) +
+  geom_dotplot(binwidth = 10) +
+  labs(title = "Weights of Chickens on Diet 3, on Day 14",
+       x = "Weight (grams)",
+       y = "Count")
+
+# 2) Histogram of chicken weights on Day 0, any diet
+ggplot(ChickWeight %>% filter(Time == 0), aes(x = weight)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Chicken Weights on Day 0",
+       x = "Weight (grams)",
+       y = "Number of Chickens")
+
+# 3) Boxplots of Day 21 weights grouped by Diet
+ggplot(ChickWeight %>% filter(Time == 21),
+       aes(x = factor(Diet, levels = c("1","2","3","4")),
+           y = weight,
+           fill = factor(Diet))) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("pink", "green", "skyblue", "purple"),
+                    labels = c("Diet 1", "Diet 2", "Diet 3", "Diet 4"),
+                    name = "Diet") +
+  labs(title = "Comparison of Chicken Diets",
+       x = "Diet",
+       y = "Weight (grams)")
+```

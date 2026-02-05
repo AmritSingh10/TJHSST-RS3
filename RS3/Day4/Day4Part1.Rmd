@@ -1,0 +1,199 @@
+---
+title: "Day4Part1"
+author: "Amrit Singh"
+date: "2025-09-04"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+
+Cereal <- read_csv("Cereal.csv")
+head(Cereal)
+Rails <- read_csv("RailsTrails.csv")
+head(Rails)
+Sea <- read_csv("SeaIce.csv")
+head(Sea)
+
+
+#19
+cereal <- Cereal %>% rename_with(tolower)
+dat <- cereal %>%
+  select(calories, sugar) %>%
+  drop_na()
+
+#19A
+
+ggplot(dat, aes(x = sugar, y = calories)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  labs(
+    x = "Sugar per serving (grams)",
+    y = "Calories per serving",
+    title = "Scatterplot of Calories vs. Sugar"
+  )
+# The scatterplot shows a positive association: cereals with higher sugar content tend to have more calories. The pattern looks roughly linear, although there is some scatter around the trend.
+
+#19B
+fit <- lm(calories ~ sugar, data = dat)
+summary(fit)
+coef(fit)
+
+#The least squares regression equation is: Calories-hat = 87.43 + (2.48 × Sugar) where the intercept and slope are taken from the regression output above.
+
+#19C
+#The slope represents the predicted change in calories for each additional gram of sugar. For example, if the slope = 3.5, it means that for each extra gram of sugar in a cereal serving, the model predicts about 3.5 more calories on average. This makes sense: cereals with more sugar are expected to have higher calorie counts.
+
+
+# 21A: #21A The regression equation is of 10 grams of sugar is predicated at 112.23 calories based on the equation 87.43 + (2.48 × 10) = 112.23.
+
+# 21B: From the regression equation, the predicted calorie count comes out to 89.91 calories from 87.43 + 2.48. Because the actual value is 110 calories, the residual is 20.09 calories, meaning the model underestimated the actual count by that much.
+
+# 21C Although there is a kind of positive correlation (meaning calories tend to increase with sugar) there's still an amount of scatter, showing that the data points don't perfectly follow the trend line.
+
+#25
+rails <- Rails %>% 
+  rename_with(tolower)
+
+rt <- rails %>%
+  select(adj2007, distance) %>%
+  drop_na()
+
+# (a)
+ggplot(rt, aes(x = distance, y = adj2007)) +
+  geom_point(alpha = 0.85, size = 2) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "Distance to trail entry (miles)",
+    y = "Estimated 2007 price (thousands of 2014 $)",
+    title = "Home Price (Adj2007) vs. Distance to Rail Trail"
+  )
+
+# The scatterplot suggests a negative association: homes farther from the trail tend to have lower prices, though there is variability.
+
+# (b)
+rt_fit <- lm(adj2007 ~ distance, data = rt)
+summary(rt_fit)
+coef(rt_fit)
+
+# The slope of −54.43 means that for every mile farther from the trail, the predicted home price decreases by about $54,427 (in 2014 dollars).
+
+# (c)
+sigma_rt <- summary(rt_fit)$sigma
+sigma_rt
+
+# The residual standard error of about 92 means actual prices typically vary from predictions by about $92,000.
+
+# (d)
+rt_aug <- rt %>% 
+  mutate(.fitted = fitted(rt_fit),
+         .resid  = resid(rt_fit))
+
+ggplot(rt_aug, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(alpha = 0.85, size = 2) +
+  labs(x = "Fitted values", y = "Residuals",
+       title = "Residuals vs Fitted (check linearity/constant variance)")
+
+ggplot(rt_aug, aes(sample = .resid)) +
+  stat_qq() + 
+  stat_qq_line() +
+  labs(title = "Normal Q-Q Plot of Residuals")
+
+# The conditions of linear regression are reasonably satisfied: residuals show no major pattern, variance looks fairly constant, and residuals appear roughly normal, though there is natural variability in housing data.
+
+#28
+
+sea <- Sea %>% rename_with(tolower)
+
+if (!"t" %in% names(sea)) {
+  if ("year" %in% names(sea)) {
+    sea <- sea %>% mutate(t = year - 1978)
+  } else {
+    stop("SeaIce.csv needs a column named 't' or 'Year'.")
+  }
+}
+
+ext_col <- intersect(names(sea), c("extent","extent_km2","extent_mkm2"))
+if (length(ext_col) == 0) stop("Couldn't find an 'Extent' column in SeaIce.csv.")
+
+si <- sea %>%
+  transmute(t = t,
+            extent = .data[[ext_col[1]]]) %>%
+  drop_na()
+
+# 1.28(a) Scatterplot of Extent vs t (to predict Extent from t)
+ggplot(si, aes(x = t, y = extent)) +
+  geom_point(alpha = 0.85, size = 2) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "t (years since 1978; 1979 = 1)",
+       y = "Extent (million sq km)",
+       title = "Sea-ice Extent vs Time (t)")
+
+#There is a strong negative relationship between the base year and sea ice extent, showing that as the years progress, the extent generally decreases. However, the scatterplot suggests that this relationship is not as linear, since the data appears to follow a curved pattern. This could show that the rate of decline in sea ice extent is increasing over time, instead of a constant.
+
+# (b)
+fit_e1 <- lm(extent ~ t, data = si)
+si_aug1 <- si %>% mutate(.fitted = fitted(fit_e1), .resid = resid(fit_e1))
+
+ggplot(si_aug1, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(alpha = 0.85, size = 2) +
+  labs(x = "Fitted values", y = "Residuals",
+       title = "Residuals vs Fitted: Extent ~ t")
+
+# Residuals show pattern/curvature → a straight-line model in t may be inadequate.
+
+# (c)
+si2 <- si %>% mutate(extent2 = extent^2)
+
+ggplot(si2, aes(x = t, y = extent2)) +
+  geom_point(alpha = 0.85, size = 2) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "t (years since 1978)",
+       y = expression(Extent^2),
+       title = expression(paste("Plot of ", Extent^2, " vs t")))
+
+# Squaring steepens the decline and may linearize slightly, but a curve can still be present.
+
+# (d)
+fit_e2 <- lm(extent2 ~ t, data = si2)
+si_aug2 <- si2 %>% mutate(.fitted = fitted(fit_e2), .resid = resid(fit_e2))
+
+ggplot(si_aug2, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(alpha = 0.85, size = 2) +
+  labs(x = "Fitted values", y = "Residuals",
+       title = expression(paste("Residuals vs Fitted: ", Extent^2, " ~ t")))
+
+# Some improvement is possible, but residuals likely still show structure, not ideal.
+
+# (e)
+si3 <- si %>% mutate(extent3 = extent^3)
+
+ggplot(si3, aes(x = t, y = extent3)) +
+  geom_point(alpha = 0.85, size = 2) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "t (years since 1978)",
+       y = expression(Extent^3),
+       title = expression(paste("Plot of ", Extent^3, " vs t")))
+
+fit_e3 <- lm(extent3 ~ t, data = si3)
+si_aug3 <- si3 %>% mutate(.fitted = fitted(fit_e3), .resid = resid(fit_e3))
+
+ggplot(si_aug3, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point(alpha = 0.85, size = 2) +
+  labs(x = "Fitted values", y = "Residuals",
+       title = expression(paste("Residuals vs Fitted: ", Extent^3, " ~ t")))
+
+# (e) Cubing can change spread and shape; residual structure often remains, suggesting nonlinearity in time.
+
+# (f) A simple linear model of Extent on t shows a clear downward trend but residual plots show curvature/structure; transforming the response (square or cube) does not fully remove this pattern, so a nonlinear time trend (e.g., polynomial in t or smoothing) would be more comfortable than a straight-line model for these data.
+
+
+```

@@ -1,0 +1,2 @@
+"0","MLBStandings2016 <- read_csv(""MLBStandings2016.csv"")"
+"0","head(MLBStandings2016)"

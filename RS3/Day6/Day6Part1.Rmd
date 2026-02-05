@@ -1,0 +1,87 @@
+---
+title: "Day6Part1"
+author: "Amrit Singh"
+date: "2025-09-18"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(Stat2Data)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(effectsize)
+library(readr)
+
+# 2.9:
+#a. A high r^2 can occur when the data have a strong relationship but follow a curved trend instead of a straight line. In such cases, a linear model explains much of the variability but doesn’t fully capture the pattern. Transforming the variables to straighten the curve could produce a more accurate fit.
+
+# b. A low r^2 doesn’t necessarily imply the linear model is unsuitable. If the true relationship is a straight line but the data points scatter widely due to random error, the r^2 will appear low. This reflects noise in the data, not a flaw in using a linear model.
+
+# 2.10:
+# a. Adding more data points narrows prediction intervals since the 1/n term decreases and higher degrees of freedom slightly reduce the critical t-value.
+
+# b. Greater spread in predictor values reduces standard error near the data’s center, tightening prediction intervals in that region.
+
+# c. Higher overall variability in the response increases the residual standard deviation, raising prediction error and widening intervals.
+
+# d. Predictions made farther from the mean of the predictor carry higher leverage, inflating error and widening intervals at those points.
+
+# 2.23:
+USstamps <- read_csv("USStamps.csv")
+
+stamps <- USstamps[!(USstamps$Year %in% c(1885, 1917, 1919, 1932)), ]
+stamp_mod <- lm(Price ~ Year, data = stamps)
+summary(stamp_mod)
+
+# a. With R^2 ≈98.5%, nearly all variation in stamp prices is explained by year, showing that time is an excellent predictor of the trend.
+
+# b. The slope’s very high t-value and near-zero p-value provide strong evidence of a robust linear link between postage costs and year.
+
+# c. The ANOVA results, featuring a massive F-statistic and negligible p-value, confirm that the regression on year explains almost all stamp price variation, with little unexplained error.
+
+# 2.27
+
+BreesPass <- read_csv("BreesPass.csv")
+brees_mod <- lm(Yards ~ Attempts, data = BreesPass)
+summary(brees_mod)
+plot(BreesPass$Attempts, BreesPass$Yards, pch=19, col="blue")
+abline(brees_mod, col="red", lwd=2)
+
+
+# a. The regression line is Yards = 86.1 + 5.69 × Attempts, showing a moderately positive trend where more pass attempts generally correspond to more yards.
+
+# b. The season average of about 7.7 yards per attempt exceeds the slope of 5.69, since the regression slope reflects the game-level relationship rather than the overall per-pass ratio.
+
+# c. An R^2 of roughly 0.34 indicates that about 34% of the variation in Brees’s passing yards can be attributed to attempts, with most variation explained by other influences.
+
+# 2.31
+Pines <- read_csv("Pines.csv")
+pine_mod <- lm(Hgt97 ~ Hgt90, data = Pines)
+summary(pine_mod)
+anova(pine_mod)
+
+# a. The regression slope is highly significant with an extremely small p-value, indicating a clear link between 1990 starting height and 1997 tree height.
+
+# b. With an R^2 of only about 2.7%, the 1990 height explains very little of the later variation, so the model has weak predictive value.
+
+# c. The ANOVA results split the total variation into regression SS (≈138,344) and residual SS (≈5,010,010), underscoring the model’s limited explanatory power.
+
+# d. Calculating regression SS over total SS yields about 0.027, consistent with the reported R^2, confirming agreement between the ANOVA and summary output.
+
+# e. Although statistically significant, the model explains so little variation that it’s not practically useful for predicting 1997 heights.
+
+# 2.33
+pine_mod2 <- lm(Hgt97 ~ Hgt96, data = Pines)
+summary(pine_mod2)
+confint(pine_mod2, level = 0.95)
+
+# a. The 95% confidence interval for the slope, about (1.079, 1.113), shows strong evidence that each extra unit of 1996 height corresponds to slightly more than one unit of 1997 height.
+
+# b. Because the entire interval lies above 1, we can infer that the trees experienced growth from 1996 to 1997, with the rate exceeding a one-to-one increase.
+
+# c. The intercept is not meaningful here, since predicting 1997 height at zero 1996 height has no biological relevance.
+```
+

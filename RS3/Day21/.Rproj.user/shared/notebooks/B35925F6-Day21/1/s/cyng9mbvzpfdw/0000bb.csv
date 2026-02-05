@@ -1,0 +1,6 @@
+"0","# Yes there is an indication of a problem."
+"0",""
+"0","# d)"
+"0","left_index <- which.min(fit)"
+"0","# Observation corresponding to the smallest fitted value"
+"0","river[left_index, ]"

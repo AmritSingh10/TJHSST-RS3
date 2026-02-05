@@ -1,0 +1,7 @@
+"0",""
+"0","hist("
+"0","  resid(step_model),"
+"0","  breaks = 30,"
+"0","  main = ""Histogram of Residuals (Stepwise Model)"","
+"0","  xlab = ""Residuals"""
+"0",")"

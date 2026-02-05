@@ -1,0 +1,2 @@
+"0","reg = lm(Cereal$Calories~Cereal$Sugar)"
+"0","abline(reg, col = ""purple4"")"

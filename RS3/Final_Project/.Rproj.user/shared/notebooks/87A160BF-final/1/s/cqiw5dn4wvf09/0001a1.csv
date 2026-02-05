@@ -1,0 +1,2 @@
+"0","glance(log_step_model) %>%"
+"0","  kable(digits = 4, caption = ""Model Fit Summary: Log Stepwise Model"")"

@@ -1,0 +1,97 @@
+---
+title: "Day22"
+author: "Amrit Singh"
+date: "2025-12-13"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(tidyverse)
+library(car)
+
+## 6.36
+Alfalfa <- read.csv("Alfalfa.csv")
+Alfalfa$Row <- as.factor(Alfalfa$Row)
+Alfalfa$Acid <- as.factor(Alfalfa$Acid)
+
+# a)
+Alfalfa %>%
+  group_by(Row) %>%
+  summarize(mean = mean(Ht4))
+Alfalfa %>%
+  group_by(Acid) %>%
+  summarize(mean = mean(Ht4))
+mean(Alfalfa$Ht4)
+sd(Alfalfa$Ht4)
+
+# b)
+model_636 <- aov(Ht4 ~ Acid + Row, data = Alfalfa)
+summary(model_636)
+
+# c)
+qqPlot(model_636, main = "Normal Q-Q Plot")
+plot(fitted(model_636), resid(model_636),
+  xlab = "Fitted Value",
+  ylab = "Residual",
+  main = "Residuals vs Fitted")
+abline(h = 0, lty = 2)
+
+# Normal probability plot shows that normality is reasonable.
+# Because the residuals vs. fitted plot displays a fairly even band, equal variance is reasonable.
+
+# d)
+# Because the p-value for acid is significant, there is evidence that growth differs by acid treatment.
+
+# e)
+# Because the p-value for row is not significant, differences across rows are probably due to randomness.
+
+## 6.37
+MSE <- summary(model_636)[[1]]["Residuals","Mean Sq"]
+MSE
+df_error <- summary(model_636)[[1]]["Residuals","Df"]
+n <- 5
+t_star <- qt(0.975, df_error)
+ME <- t_star * sqrt(2 * MSE / n)
+ME
+means <- Alfalfa %>%
+  group_by(Acid) %>%
+  summarize(mean = mean(Ht4))
+means
+
+means$mean[1] - means$mean[2]
+means$mean[1] - means$mean[3]
+means$mean[2] - means$mean[3]
+
+# Only the Water minus 3.0 HCl interval doesn't have  0.
+# Therefore, there is a significant difference between Water and 3.0 HCl.
+# The others are not significant.
+
+## 6.41
+MentalHealth <- read.csv("MentalHealth.csv")
+
+MentalHealth$Month <- as.factor(MentalHealth$Month)
+MentalHealth$Moon <- as.factor(MentalHealth$Moon)
+
+ggplot(MentalHealth, aes(x = Moon, y = Admission)) + geom_boxplot() + ggtitle("Admissions by Moon Phase")
+ggplot(MentalHealth, aes(x = Month, y = Admission)) + geom_boxplot() + ggtitle("Admissions by Month")
+
+# Possible moon effect --> higher admissions during the full moon.
+# Month affects admissions --> higher values in spring/early summer.
+model_641 <- aov(Admission ~ Month + Moon, data = MentalHealth)
+summary(model_641)
+qqPlot(model_641, main = "Normal Q-Q Plot")
+
+plot(fitted(model_641), resid(model_641),
+  xlab = "Fitted Value",
+  ylab = "Residual",
+  main = "Residuals vs Fitted")
+abline(h = 0, lty = 2)
+
+# Normal plot is linear --> residual plot shows no strong pattern.
+# Reasonable conditions for ANOVA
+# Month and Moon are both significant.
+# Month is more significant --> boxplots
+# Interaction can't be tested.
+```

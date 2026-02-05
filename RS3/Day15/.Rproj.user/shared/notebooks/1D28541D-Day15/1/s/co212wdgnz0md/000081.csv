@@ -1,0 +1,2 @@
+"0",""
+"0","ggplot(meniscus, aes(x = Method, y = Stiffness, fill = Method)) + geom_boxplot() + theme_minimal()"

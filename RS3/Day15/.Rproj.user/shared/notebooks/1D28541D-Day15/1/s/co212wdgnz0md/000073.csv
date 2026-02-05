@@ -1,0 +1,6 @@
+"0",""
+"0","ggplot(mouse, aes(x = Genotype, y = Contacts, fill = Genotype)) +"
+"0","geom_boxplot(width = 0.7) +"
+"0","labs(y = ""Serotonin contacts"", x = ""Genotype"") +"
+"0","theme_minimal() +"
+"0","theme(legend.position = ""none"")"

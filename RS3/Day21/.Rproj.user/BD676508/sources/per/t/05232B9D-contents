@@ -1,0 +1,120 @@
+---
+title: "Day21"
+author: "Amrit Singh"
+date: "2025-12-10"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(readr)
+library(tidyverse)
+library(tidyr)
+
+# 30)
+river <- read.csv("RiverIron.csv")
+head(river)
+
+# Make factors for the ANOVA model
+river$River <- factor(river$River)
+river$Site <- factor(river$Site,
+                     levels = c("Upstream", "MidStream", "DownStream"))
+
+# a)
+# FE = Grand Average + River + Site + Error
+river_mod <- aov(Iron ~ River + Site, data = river)
+summary(river_mod)
+
+
+# b)
+res <- residuals(river_mod)
+qqnorm(res,
+       main = "Normal Q-Q Plot of Residuals: River Iron")
+qqline(res, col = "red")
+# No, the normal probability plot is consistent with the data.
+
+
+# c)
+fit <- fitted(river_mod)
+plot(fit, res,
+     xlab = "Fitted Iron Concentration",
+     ylab = "Residuals",
+     main = "Residuals vs Fitted: River Iron")
+abline(h = 0, lty = 2)
+# Yes there is an indication of a problem.
+
+# d)
+left_index <- which.min(fit)
+# Observation corresponding to the smallest fitted value
+river[left_index, ]
+# Its fitted value
+fit[left_index]
+# Left-most value = ~200. Shows problem with model.
+
+# 31)
+shrew <- read.csv("SleepingShrews.csv")
+head(shrew)
+shrew$Shrew <- factor(shrew$Shrew)
+shrew$Phase <- factor(shrew$Phase,
+                      levels = c("LSW", "DSW", "REM"))
+
+# a)
+#Rate = Grand Average + Shrew + Phase + Error
+shrew_mod <- aov(Rate ~ Shrew + Phase, data = shrew)
+summary(shrew_mod)
+
+# b)
+shrew_res <- residuals(shrew_mod)
+qqnorm(shrew_res,
+       main = "Normal Q-Q Plot of Residuals: Sleeping Shrews")
+qqline(shrew_res, col = "red")
+# No. The normal probability plot appears consistent with normality; there is no strong departure from linearity.
+
+# c)
+shrew_fit <- fitted(shrew_mod)
+plot(shrew_fit, shrew_res,
+     xlab = "Fitted Heart Rate",
+     ylab = "Residual",
+     main = "Residuals vs Fitted: Sleeping Shrews")
+abline(h = 0, lty = 2)
+
+shrew[which.min(shrew_fit), ]
+
+# Yes. The residuals–fitted plot shows an outlier in the upper left and approximate linearity among the other points, indicating a potential problem with the model due to that outlier.
+
+# 35
+# The plot shows a clear pattern across pot types. Foods cooked in iron pots consistently contain the highest iron levels, regardless of the dish. In comparison, foods cooked in clay pots have the lowest iron content, and aluminum pots fall in between, slightly higher than clay but still noticeably below iron pots.
+# 
+# There are two noticeably low points for the clay-cooked meat and vegetable dishes, which may weaken the apparent difference between clay and aluminum pots. This unequal spread across groups suggests that changing the scale (for example, using a transformation) would not  fix the variability issue, since the smallest variability occurs near the center of the scale rather than at the extremes.
+# 
+# Overall, the pot type appears to meaningfully influence iron content, but the presence of outliers and unequal spreads should be considered when interpreting differences between clay and aluminum groups.
+
+ # 39
+RI <- read.csv("RiverIron.csv") %>%
+ select(River, Site, Iron)
+tab <- xtabs(Iron ~ Site + River, data = RI)
+row.means  <- rowMeans(tab)
+col.means  <- colMeans(tab)
+grand.mean <- mean(tab)
+# a
+comparison_vals <- outer(row.means, col.means, "+") - grand.mean
+additive_fit <- outer(row.means, col.means, "+") - grand.mean
+tukey_resid <- tab - additive_fit
+plot(as.vector(comparison_vals), as.vector(tukey_resid),
+    xlab = "Comparison Values", ylab = "Residuals",
+    main = "Tukey Additivity Plot")
+abline(lm(as.vector(tukey_resid) ~ as.vector(comparison_vals)), col="blue")
+# A reasonably clear trend is visible, and the slope one would eyeball is close to 0.75.
+# Tukey’s rule: suggested power = 1 – slope = ~0.25.
+
+# 40
+Contra <- read.csv("Contraceptives.csv")
+plot(Contra$Comparison, Contra$Residual,
+    xlab="Comparison Values", ylab="Residuals",
+    main="Tukey Additivity Plot")
+abline(lm(Contra$Residual ~ Contra$Comparison), col="blue")
+
+# Interpretation:
+# Although a line can be drawn through the general cloud, the points scatter widely around it. With this much unstructured variation, the evidence for transformation is weak.
+```

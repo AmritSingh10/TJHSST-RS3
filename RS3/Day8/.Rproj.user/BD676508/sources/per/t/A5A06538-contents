@@ -1,0 +1,56 @@
+---
+title: "Day7"
+author: "Amrit Singh"
+date: "2025-09-22"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+# 3.1
+# a. A student with a midterm score of 100 and a project score of 30 would have a predicted final exam score of: Final = 11.0 + 0.53(100) + 1.20(30) = 100. In short, these inputs yield an expected final of 100.
+# b. For Michael, with a midterm of 87 and a project score of 21, the predicted final is about 82.31. Since he actually earned 80, his residual is -2.31, meaning he scored about 2.3 points below expectation.
+
+# 3.3
+# The project coefficient is larger than the midterm’s, but that alone doesn’t prove greater importance. To assess impact, we must also consider variability and standard errors. It may be that the midterm has a stronger overall relationship with the final exam even though its coefficient is smaller.
+
+# 3.5
+# If the midterm score is fixed, each additional project point adds about 1.2 points to the predicted final exam score.
+
+# 3.7
+# a. True. Since total variance uses more degrees of freedom (n−1) than error variance (n−k−1), the R-squared formula is well-defined and interpretable.
+# b. False. Adding a weak predictor can slightly increase error per degree of freedom. The penalty for including it may outweigh any small gain, lowering adjusted R-squared.
+
+# 3.17
+# a. The t-value for weight is about 1.08, with a p-value of 0.282. This high p-value suggests no strong evidence that weight affects active pulse once resting pulse and exercise are accounted for.
+# b. With 232 cases and 4 parameters, the df is 228. Using t ≈ 1.65 for 90% confidence, the weight coefficient CI is roughly (-0.018, 0.087). Interpretation: a 1-pound increase could slightly decrease or slightly increase active pulse, but zero is in the range, so weight may have no real effect.
+# c. For Resting = 76, Weight = 200, and Exercise = 7, the predicted active pulse is about 96 bpm.
+
+library(tidyverse)
+library(readr)
+
+# 3.18
+RailsTrails <- read_csv("RailsTrails.csv")
+model_simple <- lm(adj2007 ~ distance, data = RailsTrails)
+summary(model_simple)
+
+# a. In the simple regression, every additional mile from the trail is linked to about a $54,127 drop in home price. This effect is statistically significant, with the model explaining roughly 24% of price variation. The average prediction error is around $92,130.
+
+model_multiple <- lm(adj2007 ~ distance + squarefeet, data = RailsTrails)
+summary(model_multiple)
+
+# b. After adding square footage, the distance effect weakens to about $16,486 per mile but remains significant. Accounting for home size greatly improves the model: R² increases from 0.237 to 0.766, and the standard error falls to $51,340.
+
+moe_simple <- qt(0.975, df = 102) * 9.659
+ci_simple <- c(-54.4272 - moe_simple, -54.4272 + moe_simple)
+ci_simple
+moe_multiple <- qt(0.975, df = 101) * 5.942
+ci_multiple <- c(-16.486 - moe_multiple, -16.486 + moe_multiple)
+ci_multiple
+
+# c. The simple model’s 95% CI for the distance effect spans about -73.59 to -35.27 (thousands). With square footage included, it tightens to roughly -28.27 to -4.61, showing that size reduces both the estimated impact and the uncertainty.
+
+# d. For a 1,500-square-foot house located half a mile from the trail, the model predicts a selling price of about $226,217, reflecting the combined influence of size and proximity.
+
+```

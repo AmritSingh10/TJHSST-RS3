@@ -1,0 +1,87 @@
+---
+title: "Day17"
+author: "Amrit Singh"
+date: "2025-11-14"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(readr)
+library(tidyverse)
+
+hawks <- read_csv("Hawks.csv")
+
+# 8) c
+
+# 10
+# a.) If the spread of the data increases with the mean
+# b.) A power transformation could fix the variance
+# 32
+# a.)
+hawks_filtered <- hawks %>%
+  filter(Species %in% c("RT", "SS", "CH")) %>%
+  filter(Weight > 0)
+hawks_filtered %>%
+  ggplot(aes(x = Weight, y = Species)) +
+  geom_jitter(height = 0.2) +
+  theme_minimal()
+
+# The SS doplot is right skewed and has little variability. Also, there are outliers in all three groups
+
+# b.)
+hawks_filtered %>%
+  group_by(Species) %>%
+  summarize(SD = sd(Weight))
+
+# The standard deviations are different across the species, so there is a concern about using ANOVA.
+
+# 43
+# a.)
+hawk_summary <- hawks_filtered %>%
+  group_by(Species) %>%
+  summarize(average = mean(Weight), s = sd(Weight))
+log_summary <- hawk_summary %>%
+  mutate(log_avg = log(average), log_s = log(s))
+  plot(log_summary$log_avg, log_summary$log_s,
+  main = "Log(SD) vs Log(Average)",
+  xlab = "log(average weight)",
+  ylab = "log(standard deviation)",
+  pch = 19)
+abline(lm(log_s~ log_avg, data = log_summary))
+
+# The points form roughly a straight line
+
+# b.)
+slope <- coef(lm(log_s~ log_avg, data = log_summary))[2]
+slope
+
+# The slope is approximately 0.5.
+
+# c.)
+p <- 1- slope
+p
+
+# The transformation suggested is raising Weight to the 0.5th power
+
+# 49
+# a.)
+hawks_filtered <- hawks_filtered %>%
+  mutate(Weight_trans = Weight^0.5)
+hawks_filtered %>%
+  group_by(Species) %>%
+  summarize(mean_trans = mean(Weight_trans), sd_trans = sd(Weight_trans))
+
+# After the transformation, the sample means and standard deviations are more similar across species.
+
+# b.)
+hawks_filtered %>%
+  ggplot(aes(x = Species, y = Weight_trans)) +
+  geom_boxplot()
+
+# The boxplots show that the weights are highest for RT and smallest for SS.
+
+# c.)
+# Even though the standard deviations are somewhat similar, they are still skewed.
+```

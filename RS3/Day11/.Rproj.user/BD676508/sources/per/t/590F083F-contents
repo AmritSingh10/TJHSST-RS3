@@ -1,0 +1,135 @@
+---
+title: "Day11"
+author: "Amrit Singh"
+date: "2025-10-21"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(readr)
+library(MASS)
+
+CountyHealth <- read_csv("CountyHealth.csv")
+CountyHealth$TsqrtMDs <- sqrt(CountyHealth$MDs)
+FirstYearGPA <- read_csv("FirstYearGPA.csv")
+HighPeaks <- read_csv("HighPeaks.csv")
+ReligionGDP <- read_csv("ReligionGDP.csv")
+
+#8
+#a)
+train_CH <- CountyHealth[1:35, ]
+model_CH <- lm(TsqrtMDs ~ Hospitals, data = train_CH)
+summary(model_CH)
+# LSRL is sqrtMDs = -3.1695 + 6.7853Hospitals
+
+#b)
+test_CH <- CountyHealth[36:nrow(CountyHealth), ]
+pred_CH <- predict(model_CH, newdata = test_CH)
+pred_CH
+cor(test_CH$TsqrtMDs, pred_CH)
+# r = 0.9531439 and predictions are shown in code
+
+#c)
+shrinkage_CH <- summary(model_CH)$r.squared - (cor(test_CH$TsqrtMDs, pred_CH))^2
+shrinkage_CH
+# Shrinkage = -0.0752451. This value ^2 is very close to the R^2 value which tells us that the model works as well for any sample as it did for the training sample.
+
+#9
+#a)
+train_GPA <- FirstYearGPA[1:150, ]
+model_GPA <- lm(GPA ~ HSGPA + HU + White, data = train_GPA)
+summary(model_GPA)
+# The least squares regression line is given by GPA = 1.1475 + 0.46605(HSGPA) + 0.015328(HU) + 0.19917(White). All predictors are statistically significant since their p-values are below 0.05. The estimated standard deviation of the errors is 0.377, and the model explains 28.42% of the variation in GPA (R^2 = 0.2842).
+
+#b)
+test_GPA <- FirstYearGPA[151:219, ]
+pred_GPA <- predict(model_GPA, newdata = test_GPA)
+pred_GPA
+errors_GPA <- test_GPA$GPA - pred_GPA
+errors_GPA
+
+#c)
+mean(errors_GPA)
+sd(errors_GPA)
+# The residuals have a mean of -0.0595, which is approximately zero, and a standard deviation of 0.4066, closely matching the model’s estimated error standard deviation of 0.377.
+
+#d)
+cor(test_GPA$GPA, pred_GPA)
+# The r = 0.596
+
+#e)
+shrinkage_GPA <- summary(model_GPA)$r.squared - (cor(test_GPA$GPA, pred_GPA))^2
+shrinkage_GPA
+# It works well since the shrinkage is negative
+
+#11
+#a)
+ReligionGDP$logGDP <- log(ReligionGDP$GDP)
+plot(logGDP ~ Religiosity, data = ReligionGDP, xlab="Religiosity", ylab="log(GDP)")
+
+#b)
+model_rel1 <- lm(logGDP ~ Religiosity, data = ReligionGDP)
+summary(model_rel1)
+# 53.88%
+
+#c)
+# The coefficient is -1.40, indicating that for each one-unit increase in Religiosity, logGDP is expected to decrease by 1.40.
+
+#d.)
+studres_rel1 <- studres(model_rel1)
+plot(predict(model_rel1), studres_rel1, xlab="Predicted", ylab="Studentized Residuals")
+studres_rel1[ReligionGDP$Country == "Kuwait"]
+# The magnitude is 3.986
+
+#e.)
+model_rel2 <- lm(logGDP ~ Religiosity + EastEurope + MiddleEast + Asia + WestEurope + Americas, data = ReligionGDP)
+summary(model_rel2)
+# 72.35%
+
+#f.)
+# The coefficient of -0.9979 indicates that, after controlling for region, a one-unit increase in Religiosity is associated with a 0.9979 decrease in logGDP.
+
+#g.)
+anova(model_rel1, model_rel2)
+# It does help because the p-value 0.001448 is less than 0.05.
+
+#h.)
+studres_rel2 <- studres(model_rel2)
+plot(predict(model_rel2), studres_rel2, xlab="Predicted", ylab="Studentized Residuals")
+studres_rel2[ReligionGDP$Country == "Kuwait"]
+# The magnitude is 3.3699
+
+#12 a.)
+model_hp <- lm(Time ~ Length + Elevation + Ascent + Difficulty, data = HighPeaks)
+summary(model_hp)
+model_hp2 <- lm(Time ~ Length + Elevation + Difficulty, data = HighPeaks)
+summary(model_hp2)
+# I would model Time as: Time = Constant + B1(Length) + B2(Elevation) + B3(Ascent) + B4(Difficulty).
+
+#b.)
+par(mfrow=c(2,2))
+plot(model_hp)
+# Linearity and Equal Variance: The Residual vs. Fitted Plot shows a uniform scatter on both sides, indicating these assumptions are satisfied.
+# Normality: The QQ Plot appears relatively linear, suggesting that the normality assumption is met.
+
+#c)
+studres_hp <- rstudent(model_hp)
+HighPeaks$studres <- studres_hp
+HighPeaks[abs(HighPeaks$studres) > 2, ]
+# Seward, Donaldson, and Emmons appear to be outliers, as their climb times are significantly longer than the model’s predictions.
+
+#d.)
+lev_hp <- hatvalues(model_hp)
+cooks_hp <- cooks.distance(model_hp)
+threshold_leverage <- 2 * (4 + 1) / nrow(HighPeaks)
+flag_leverage <- lev_hp > threshold_leverage
+flag_max_cook <- cooks_hp == max(cooks_hp)
+flag <- flag_leverage | flag_max_cook
+HighPeaks$Leverage <- lev_hp
+HighPeaks$CooksD <- cooks_hp
+HighPeaks[flag, c("Peak", "Leverage", "CooksD")]
+# Nye has the highest leverage at 0.276, while Emmons has the largest Cook’s Distance value of 0.156. Based on the 2(k+1)/n criterion, Nye, Marcy, Cascade, and Cliff are considered influential, but since no Cook’s Distance exceeds 0.5, none are deemed highly influential overall.
+
+```
